@@ -38,7 +38,7 @@ def take_full_screenshot_with_bounding_box(start_x, start_y, width, height):
         width=5,
     )
 
-    return screenshot.convert("RGB")  # Convert to RGB if not already
+    return screenshot.convert("RGB"), screenshot.size  # Convert to RGB if not already
 
 
 def crop_selected_area(screenshot, start_x, start_y, width, height):
@@ -114,9 +114,15 @@ def main(page: ft.Page):
         with keep.presenting():  # Use presenting mode to keep both CPU and screen active
             while not stop_event.is_set():
                 # Take a full screenshot and draw the bounding box on the selected area
-                full_screenshot = take_full_screenshot_with_bounding_box(
+                full_screenshot, original_size = take_full_screenshot_with_bounding_box(
                     start_x, start_y, width, height
                 )
+
+                # Calculate the new width to maintain the aspect ratio for a fixed height of 400
+                original_width, original_height = original_size
+                fixed_height = 400
+                aspect_ratio = original_width / original_height
+                calculated_width = int(fixed_height * aspect_ratio)
 
                 # Crop the selected area for comparison
                 cropped_screenshot = crop_selected_area(
@@ -151,6 +157,8 @@ def main(page: ft.Page):
                 # Display the full screenshot with bounding box in the app
                 screenshot_base64 = create_low_quality_image(full_screenshot)
                 screenshot_image.src_base64 = screenshot_base64
+                screenshot_image.width = calculated_width  # Set the new width
+                screenshot_image.height = fixed_height  # Fix the height to 400
                 status_text.value = "Status: Capturing..."
                 page.update()
 
@@ -197,7 +205,7 @@ def main(page: ft.Page):
 
     def on_take_screenshot_preview(e):
         # Take a screenshot for preview
-        full_screenshot = take_full_screenshot_with_bounding_box(
+        full_screenshot, _ = take_full_screenshot_with_bounding_box(
             int(start_x.value), int(start_y.value), int(width.value), int(height.value)
         )
         screenshot_base64 = create_low_quality_image(full_screenshot)

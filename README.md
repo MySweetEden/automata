@@ -13,8 +13,8 @@ This application allows users to monitor a specific area of the screen by period
 Run the following commands in your terminal:
 
 ``` 
-git clone https://github.com/MySweetEden/automata.git
-cd automata
+git clone https://github.com/MySweetEden/automonita.git
+cd automonita
 uv sync
 python app.py
 ```
