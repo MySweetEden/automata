@@ -70,23 +70,23 @@ def compare_images(img1, img2):
 
 
 def main(page: ft.Page):
-    page.title = "Screenshot App"
+    page.title = "Automonita"
 
     # Variables for coordinates, size, interval, and LINE API key
-    start_x = ft.TextField(label="Start X", value="0")
-    start_y = ft.TextField(label="Start Y", value="0")
-    width = ft.TextField(label="Width", value="100")
-    height = ft.TextField(label="Height", value="100")
-    interval = ft.TextField(label="Interval (seconds)", value="5")
+    start_x = ft.TextField(label="Start X", value="0", width=150)
+    start_y = ft.TextField(label="Start Y", value="0", width=150)
+    width = ft.TextField(label="Width", value="100", width=150)
+    height = ft.TextField(label="Height", value="100", width=150)
+    interval = ft.TextField(label="Interval (seconds)", value="5", width=150)
 
     # Textbox for LINE API key with asterisks shown
     line_api_key_input = ft.TextField(
-        label="LINE API Key", value="", password=True
+        label="LINE API Key", value="", password=True, width=300
     )  # Password hides input with asterisks
 
     # Image component to display the full screenshot
     screenshot_image = ft.Image(
-        src_base64="", width=600, height=400
+        src_base64="", width=400, height=300
     )  # Keep original size
     status_text = ft.Text(value="Status: Ready", size=14)
 
@@ -215,32 +215,31 @@ def main(page: ft.Page):
         text="Remove Screenshot", on_click=on_remove_screenshot
     )
 
-    # Add components to the page with textbox for LINE API key
+    page.window.width = 600  # Increase the default window width
+    page.window.height = 800  # Increase the default window height
+
     page.add(
         ft.Column(
             [
-                ft.Row(
-                    [start_x, start_y], spacing=20
-                ),  # First row for Start X and Start Y
-                ft.Row([width, height], spacing=20),  # Second row for Width and Height
-                ft.Row([interval], spacing=20),  # Third row for the interval input
-                ft.Row([line_api_key_input]),  # Textbox for LINE API key input
-                ft.Text("Monitoring:", size=16),  # Label for Monitoring buttons
-                ft.Row(
-                    [start_button, stop_button], spacing=20
-                ),  # Start and Stop buttons
-                ft.Text("App Control:", size=16),  # Label for App Control buttons
-                ft.Row(
-                    [take_screenshot_preview_button, remove_button], spacing=20
-                ),  # Preview and Remove buttons
-                screenshot_image,  # Image widget to display the full screenshot
-                ft.Container(
-                    content=status_text, padding=ft.padding.only(top=20)
-                ),  # Added padding for spacing
+                # Input Fields at the top with reduced textbox sizes
+                ft.Text("Input Parameters:", size=16), 
+                ft.Row([ft.Container(start_x, width=100), ft.Container(start_y, width=100), ft.Container(width, width=100), ft.Container(height, width=100)], spacing=10),
+                ft.Row([ft.Container(interval, width=100), ft.Container(line_api_key_input, width=200)], spacing=10),
+
+                # Combined Control Panel section
+                ft.Text("Control Panel:", size=16),
+                ft.Row([start_button, stop_button], spacing=20),  # Monitoring sub-group
+                ft.Row([take_screenshot_preview_button, remove_button], spacing=20),  # App Control sub-group
+                
+                # Screenshot below control buttons
+                ft.Text("Screenshot Preview:", size=16),
+                screenshot_image,  # Display screenshot image
+
+                # Status Text at the bottom
+                ft.Container(content=status_text, padding=ft.padding.only(top=20)),
             ],
-            spacing=20,
+            spacing=10,
         )
     )
-
 
 ft.app(target=main)
