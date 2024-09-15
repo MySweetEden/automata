@@ -8,6 +8,7 @@ import flet as ft
 import requests
 from dotenv import load_dotenv
 from PIL import ImageChops, ImageDraw, ImageGrab
+from wakepy import keep  # Import wakepy
 
 # Load the environment variables from .env file
 load_dotenv()
@@ -99,65 +100,65 @@ def main(page: ft.Page):
             return line_api_key_input.value.strip()
         return env_line_api_key  # Otherwise, use the one from the .env file
 
+
     def periodic_screenshot(start_x, start_y, width, height, interval):
         last_cropped = None
         file_path = "final_screenshot.jpg"  # Path for the final screenshot file
-        line_api_key = (
-            get_line_api_key()
-        )  # Get the LINE API key from the textbox or .env
+        line_api_key = get_line_api_key()  # Get the LINE API key from the textbox or .env
 
         if not line_api_key:  # If no LINE API key is provided, stop the process
             status_text.value = "Error: No LINE API key provided"
             page.update()
             return
 
-        while not stop_event.is_set():
-            # Take a full screenshot and draw the bounding box on the selected area
-            full_screenshot = take_full_screenshot_with_bounding_box(
-                start_x, start_y, width, height
-            )
-
-            # Crop the selected area for comparison
-            cropped_screenshot = crop_selected_area(
-                full_screenshot, start_x, start_y, width, height
-            )
-
-            # Compare with the last cropped screenshot
-            if last_cropped and compare_images(cropped_screenshot, last_cropped):
-                # Save the final screenshot
-                save_screenshot_image(full_screenshot, file_path)
-
-                # Notify via LINE that the process finished
-                status_code = send_line_notify(
-                    "Process finished. Here is the final screenshot:",
-                    file_path,
-                    line_api_key,
+        with keep.presenting():  # Use presenting mode to keep both CPU and screen active
+            while not stop_event.is_set():
+                # Take a full screenshot and draw the bounding box on the selected area
+                full_screenshot = take_full_screenshot_with_bounding_box(
+                    start_x, start_y, width, height
                 )
-                if status_code == 200:
-                    status_text.value = (
-                        "Finished: No changes detected. Notification sent."
+
+                # Crop the selected area for comparison
+                cropped_screenshot = crop_selected_area(
+                    full_screenshot, start_x, start_y, width, height
+                )
+
+                # Compare with the last cropped screenshot
+                if last_cropped and compare_images(cropped_screenshot, last_cropped):
+                    # Save the final screenshot
+                    save_screenshot_image(full_screenshot, file_path)
+
+                    # Notify via LINE that the process finished
+                    status_code = send_line_notify(
+                        "Process finished. Here is the final screenshot:",
+                        file_path,
+                        line_api_key,
                     )
-                else:
-                    status_text.value = f"Finished: No changes detected. Failed to send notification (Status: {status_code})"
+                    if status_code == 200:
+                        status_text.value = (
+                            "Finished: No changes detected. Notification sent."
+                        )
+                    else:
+                        status_text.value = f"Finished: No changes detected. Failed to send notification (Status: {status_code})"
 
-                stop_event.set()
+                    stop_event.set()
+                    page.update()
+                    break
+
+                # Store the current cropped screenshot for future comparison
+                last_cropped = cropped_screenshot
+
+                # Display the full screenshot with bounding box in the app
+                screenshot_base64 = create_low_quality_image(full_screenshot)
+                screenshot_image.src_base64 = screenshot_base64
+                status_text.value = "Status: Capturing..."
                 page.update()
-                break
 
-            # Store the current cropped screenshot for future comparison
-            last_cropped = cropped_screenshot
+                # Sleep for the specified interval
+                time.sleep(interval)
 
-            # Display the full screenshot with bounding box in the app
-            screenshot_base64 = create_low_quality_image(full_screenshot)
-            screenshot_image.src_base64 = screenshot_base64
-            status_text.value = "Status: Capturing..."
+            status_text.value = "Status: Finished"
             page.update()
-
-            # Sleep for the specified interval
-            time.sleep(interval)
-
-        status_text.value = "Status: Finished"
-        page.update()
 
     def on_start_screenshots(e):
         # Stop any ongoing screenshots
@@ -238,7 +239,7 @@ def main(page: ft.Page):
                 ),  # Added padding for spacing
             ],
             spacing=20,
-        )  # Overall vertical spacing for the layout
+        )
     )
 
 
