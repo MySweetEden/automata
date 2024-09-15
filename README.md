@@ -1,6 +1,6 @@
-# Screenshot Monitoring App with LINE Notifications
+# Screen Monitoring App with LINE Notifications
 
-This application allows users to monitor a specific area of the screen by periodically taking screenshots. The app detects changes in the selected area and sends a notification to the user’s LINE account when the process completes. Additionally, users can manually take a screenshot for preview purposes or clear the displayed screenshot from the app.
+This application enables users to monitor specific areas of their screen for changes. It periodically checks the designated region and sends a notification to the user’s LINE account when changes are detected or when the monitoring process completes. While the primary focus is on monitoring, the app also allows users to preview and clear screenshots as needed.
 
 ## Features
 - Monitor Screen Area: Select a specific area of the screen to monitor for changes.
